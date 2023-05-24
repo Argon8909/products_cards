@@ -13,6 +13,7 @@ namespace Products
 
         public Product()
         {
+            
         }
 
         public Product(decimal price, string title)

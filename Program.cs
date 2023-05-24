@@ -13,6 +13,7 @@ namespace Products
     {
         private const int ProductsCapacity = 100;
         private static Random _random = new Random();
+
         private static List<Product> _products = new List<Product>(ProductsCapacity); //перечень продуктов
 
         static void Main(string[] args)
@@ -29,7 +30,10 @@ namespace Products
             }
 
             //выбрать такие корзины, в которых сумма всех продуктов больше 100
-            var basketsOver100 = Baskets.Where(b => b.SumProducts > 100);
+            var basketsOver100 = Baskets
+                .Where(b => b.Products
+                    .Sum(s => s.Value * s.Key.Price) > 100
+                ); //(b => b.SumProducts > 100);
 
             //ыбрать такие продукты, у которых название длинее 5 символов и цена больше 10
             var namePriceProducts = _products.Where(p => p.Title.Length > 5 && p.Price > 10);
@@ -38,24 +42,29 @@ namespace Products
             var basketsOver4Positions = Baskets.Where(b => b.Products.Count > 4);
 
             //выбрать продукты из всех корзин, у которых цена в интервале от 10 до 100
-            var price10To100 =
-                _products.Where(p =>
+            var _price10To100 = Baskets
+                .SelectMany(b => b.Products.Keys)
+                .Distinct()
+                .Where(p =>
                     p.Price > 10 &&
-                    p.Price < 100);
+                    p.Price < 100
+                );
 
             //выбрать для каждой корзины продукт с максимальной ценой в рамках данной корзины
             var maxPriceInBasket = Baskets
-                .Select(b => b.Products.OrderByDescending(p => p.Key.Price).FirstOrDefault())
-                .Select(p => p.Key);
+                .Select(b => b.Products
+                    .OrderByDescending(p => p.Key.Price)
+                    .FirstOrDefault().Key);
 
             //посчитать сумму всех продуктов в рамках каждой корзины
-            var sumProductPriceInBasket = Baskets.Select(s => s.Products.Sum(s => s.Key.Price));
+            var sumProductPriceInBasket = Baskets
+                .Select(s => s.Products
+                    .Sum(s => s.Key.Price * s.Value));
 
             //посмитчать сумму всех продуктов для всех корзин суммарно
-            var sumPriceProductInAllBasket = Baskets.SelectMany(b => b.Products.Keys)
-                .Sum(p => p.Price);
+            var sumPriceProductInAllBasket = Baskets.SelectMany(b => b.Products)
+                .Sum(p => p.Key.Price * p.Value);
         }
-
 
         static Product CreateProduct()
         {
